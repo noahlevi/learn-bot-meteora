@@ -1,9 +1,10 @@
-pub const PUMP_FUN_ACCOUNT_ADDR: &str = "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf";
-pub const PUMP_FUN_TX_ADDR: &str = "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1";
-pub const PUMP_FUN_PROGRAM_ADDR: &str = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P";
-
 pub const RENT_ADDR: &str = "SysvarRent111111111111111111111111111111111";
 pub const SYSTEM_PROGRAM_ADDR: &str = "11111111111111111111111111111111";
 pub const TOKEN_PROGRAM_ADDR: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 
 pub const JITO_TIP_ADDR: &str = "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY";
+
+pub const BLOXROUTE_TIP_ADDR: &str = "HWEoBxYs7ssKuudEjzjmpfJVX7Dvi7wescFsVx2L5yoY";
+pub const NEXTBLOCK_BLOCK_TIP_ADDR: &str = "NeXTBLoCKs9F1y5PJS9CKrFNNLU1keHW71rfh7KgA1X";
+
+pub const METEORA_PROGRAM_ADDR: &str = "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB";

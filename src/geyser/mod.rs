@@ -54,13 +54,18 @@ pub type GeyserResult<T> = Result<T, Error>;
 pub trait YellowstoneGrpcGeyser: Send + Sync {
     async fn consume(
         &self,
-        pump_fun_controller: PumpFunController
+        meteora_controller: MeteoraController
     ) -> GeyserResult<()>;
+    // async fn consume(
+    //     &self,
+    //     pump_fun_controller: PumpFunController
+    // ) -> GeyserResult<()>;
 }
 
 use thiserror::Error;
 use crate::config::PingThingsArgs;
-use crate::pumpfun::PumpFunController;
+// use crate::pumpfun::PumpFunController;
+use crate::meteora::MeteoraController;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -72,8 +77,9 @@ pub enum Error {
 impl YellowstoneGrpcGeyser for YellowstoneGrpcGeyserClient {
     async fn consume(
         &self,
-        mut pump_fun_controller: PumpFunController
+        mut meteora_controller: MeteoraController
     ) -> GeyserResult<()> {
+        // info!("INSIDE CONSUME");
         let endpoint = self.endpoint.clone();
         let x_token = self.x_token.clone();
         let commitment = self.commitment;
@@ -153,7 +159,7 @@ impl YellowstoneGrpcGeyser for YellowstoneGrpcGeyserClient {
                                                         }
                                                     };
                                                     // info!("signature {:?}", signature);
-                                                     let  _ = pump_fun_controller.transaction_handler(
+                                                     let  _ = meteora_controller.transaction_handler(
                                                         signature,
                                                         versioned_transaction,
                                                         meta_original,

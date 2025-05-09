@@ -7,22 +7,21 @@ use anyhow::anyhow;
 use futures::StreamExt;
 use log::debug;
 use reqwest::Client;
+use serde::Deserialize;
 use serde_json::json;
 use solana_client::nonblocking::pubsub_client::PubsubClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Signature;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use serde::Deserialize;
-use solana_sdk::pubkey::Pubkey;
 use tokio::sync::mpsc;
 use tokio::time::timeout;
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info, warn};
-
 
 #[derive(Clone)]
 pub struct Bench {
@@ -57,9 +56,19 @@ impl Bench {
         tx_index: u32,
         rpc_sender: Arc<dyn TxSender>,
         recent_blockhash: Hash,
-        token_address: Pubkey,
-        bonding_curve: Pubkey,
-        associated_bonding_curve: Pubkey,
+        pool: Pubkey,
+        user_source_token: Pubkey,
+        user_destination_token: Pubkey,
+        a_vault: Pubkey,
+        b_vault: Pubkey,
+        a_token_vault: Pubkey,
+        b_token_vault: Pubkey,
+        a_vault_lp_mint: Pubkey,
+        b_vault_lp_mint: Pubkey,
+        a_vault_lp: Pubkey,
+        b_vault_lp: Pubkey,
+        protocol_token_fee: Pubkey,
+        vault_programm: Pubkey,
     ) -> anyhow::Result<()> {
         let start = tokio::time::Instant::now();
 
@@ -67,40 +76,83 @@ impl Bench {
             .send_transaction(
                 tx_index,
                 recent_blockhash,
-                token_address,
-                bonding_curve,
-                associated_bonding_curve,
+                pool,
+                user_source_token,
+                user_destination_token,
+                a_vault,
+                b_vault,
+                a_token_vault,
+                b_token_vault,
+                a_vault_lp_mint,
+                b_vault_lp_mint,
+                a_vault_lp,
+                b_vault_lp,
+                protocol_token_fee,
+                vault_programm,
             )
             .await?;
 
-
-        info!("complete rpc: {:?} {:?} ms", rpc_sender.name(), start.elapsed().as_millis() as u64);
+        info!(
+            "complete rpc: {:?} {:?} ms",
+            rpc_sender.name(),
+            start.elapsed().as_millis() as u64
+        );
         Ok(())
     }
 
-    pub async fn send_buy_tx(
+    pub async fn send_swap_tx(
         self,
         recent_blockhash: Hash,
-        token_address: Pubkey,
-        bonding_curve: Pubkey,
-        associated_bonding_curve: Pubkey,
+        pool: Pubkey,
+        user_source_token: Pubkey,
+        user_destination_token: Pubkey,
+        a_vault: Pubkey,
+        b_vault: Pubkey,
+        a_token_vault: Pubkey,
+        b_token_vault: Pubkey,
+        a_vault_lp_mint: Pubkey,
+        b_vault_lp_mint: Pubkey,
+        a_vault_lp: Pubkey,
+        b_vault_lp: Pubkey,
+        protocol_token_fee: Pubkey,
+        vault_programm: Pubkey,
     ) {
         tokio::select! {
-            _ = self.send_buy_tx_inner(
+            _ = self.send_swap_tx_inner(
                 recent_blockhash,
-                token_address,
-                bonding_curve,
-                associated_bonding_curve,
+                pool,
+                user_source_token,
+                user_destination_token,
+                a_vault,
+                b_vault,
+                a_token_vault,
+                b_token_vault,
+                a_vault_lp_mint,
+                b_vault_lp_mint,
+                a_vault_lp,
+                b_vault_lp,
+                protocol_token_fee,
+                vault_programm,
             ) => {}
         }
     }
 
-    async fn send_buy_tx_inner(
+    async fn send_swap_tx_inner(
         self,
         recent_blockhash: Hash,
-        token_address: Pubkey,
-        bonding_curve: Pubkey,
-        associated_bonding_curve: Pubkey,
+        pool: Pubkey,
+        user_source_token: Pubkey,
+        user_destination_token: Pubkey,
+        a_vault: Pubkey,
+        b_vault: Pubkey,
+        a_token_vault: Pubkey,
+        b_token_vault: Pubkey,
+        a_vault_lp_mint: Pubkey,
+        b_vault_lp_mint: Pubkey,
+        a_vault_lp: Pubkey,
+        b_vault_lp: Pubkey,
+        protocol_token_fee: Pubkey,
+        vault_programm: Pubkey,
     ) {
         let start = tokio::time::Instant::now();
         info!("starting create buy tx");
@@ -116,11 +168,21 @@ impl Bench {
                     index,
                     rpc_sender,
                     recent_blockhash,
-                    token_address,
-                    bonding_curve,
-                    associated_bonding_curve,
+                    pool,
+                    user_source_token,
+                    user_destination_token,
+                    a_vault,
+                    b_vault,
+                    a_token_vault,
+                    b_token_vault,
+                    a_vault_lp_mint,
+                    b_vault_lp_mint,
+                    a_vault_lp,
+                    b_vault_lp,
+                    protocol_token_fee,
+                    vault_programm,
                 )
-                    .await
+                .await
                 {
                     error!("error end_and_confirm_transaction {:?}", e);
                 }
@@ -134,6 +196,9 @@ impl Bench {
             hdl.await.unwrap_or_default();
         }
 
-        info!("bench complete! {:?} ms", start.elapsed().as_millis() as u64);
+        info!(
+            "bench complete! {:?} ms",
+            start.elapsed().as_millis() as u64
+        );
     }
 }

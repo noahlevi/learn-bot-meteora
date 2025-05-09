@@ -27,15 +27,20 @@ use tracing::info;
 use crate::bench::Bench;
 use crate::geyser::{GeyserResult, YellowstoneGrpcGeyser, YellowstoneGrpcGeyserClient};
 use crate::config::PingThingsArgs;
-use crate::pumpfun::PumpFunController;
+// use crate::pumpfun::PumpFunController;
+use crate::meteora::MeteoraController;
 
 pub const PUMPFUN_PROGRAM_ID: Pubkey = pubkey!("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P");
+pub const METEORA_PROGRAM_ID: Pubkey = pubkey!("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB");
+pub const WSOL_ACCOUNT_ID: Pubkey = pubkey!("So11111111111111111111111111111111111111112");
+
 mod bench;
 mod config;
 mod tx_senders;
 mod geyser;
-mod pumpfun;
+// mod pumpfun;
 mod core;
+mod meteora;
 
 #[tokio::main]
 pub async fn main() -> GeyserResult<()> {
@@ -49,7 +54,7 @@ pub async fn main() -> GeyserResult<()> {
     let config_controller: PingThingsArgs = PingThingsArgs::new();
     let bench_controller: Bench = Bench::new(config_controller.clone());
 
-    let pumpfun_controller: PumpFunController = PumpFunController::new(config_controller.clone(), bench_controller.clone());
+    let meteora_controller: MeteoraController = MeteoraController::new(config_controller.clone(), bench_controller.clone());
 
     info!("starting with config {:?}", config_controller);
 
@@ -61,16 +66,18 @@ pub async fn main() -> GeyserResult<()> {
     let transaction_filter = SubscribeRequestFilterTransactions {
         vote: Some(false),
         failed: Some(false),
-        account_include: vec![PUMPFUN_PROGRAM_ID.to_string().clone()],
+        account_include: vec![METEORA_PROGRAM_ID.to_string().clone()],
         account_exclude: vec![],
-        account_required: vec![],
+        account_required: vec![
+            WSOL_ACCOUNT_ID.to_string().clone()
+            ],
         signature: None,
     };
 
     let mut transaction_filters: HashMap<String, SubscribeRequestFilterTransactions> =
         HashMap::new();
 
-    transaction_filters.insert("pumpfun_transaction_filter".to_string(), transaction_filter);
+    transaction_filters.insert("meteora_transaction_filter".to_string(), transaction_filter);
 
     let yellowstone_grpc = YellowstoneGrpcGeyserClient::new(
         config_controller.geyser_url,
@@ -81,6 +88,6 @@ pub async fn main() -> GeyserResult<()> {
         Arc::new(RwLock::new(HashSet::new())),
     );
 
-    let _ = yellowstone_grpc.consume(pumpfun_controller).await;
+    let _ = yellowstone_grpc.consume(meteora_controller).await;
     Ok(())
 }

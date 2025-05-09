@@ -15,7 +15,7 @@ pub struct PingThingsArgs {
     pub compute_unit_limit: u32,
     pub tip: f64,
     pub buy_amount: f64,
-    pub min_amount_out: f64
+    pub min_amount_out: f64,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -24,6 +24,8 @@ pub enum RpcType {
     #[default]
     SolanaRpc,
     Jito,
+    Bloxroute,
+    Nextblock,
 }
 #[derive(Clone, Debug, Deserialize)]
 pub struct RpcConfig {
