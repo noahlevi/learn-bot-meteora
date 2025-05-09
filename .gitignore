@@ -3,4 +3,6 @@ __MACOSX
 
 target/
 
+# Configuration files
 config.yaml
+*.yaml
