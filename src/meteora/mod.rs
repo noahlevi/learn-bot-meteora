@@ -44,6 +44,57 @@ pub struct AddLiquidityIxData {
     pub activationPoint: Option<u64>,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct SwapData {
+    pub pool: Pubkey,
+    pub user_source_token: Pubkey,
+    pub user_destination_token: Pubkey,
+    pub a_vault: Pubkey,
+    pub b_vault: Pubkey,
+    pub a_token_vault: Pubkey,
+    pub b_token_vault: Pubkey,
+    pub a_vault_lp_mint: Pubkey,
+    pub b_vault_lp_mint: Pubkey,
+    pub a_vault_lp: Pubkey,
+    pub b_vault_lp: Pubkey,
+    pub protocol_token_fee: Pubkey,
+    pub vault_programm: Pubkey,
+}
+
+impl SwapData {
+    pub fn new(
+        pool: Pubkey,
+        user_source_token: Pubkey,
+        user_destination_token: Pubkey,
+        a_vault: Pubkey,
+        b_vault: Pubkey,
+        a_token_vault: Pubkey,
+        b_token_vault: Pubkey,
+        a_vault_lp_mint: Pubkey,
+        b_vault_lp_mint: Pubkey,
+        a_vault_lp: Pubkey,
+        b_vault_lp: Pubkey,
+        protocol_token_fee: Pubkey,
+        vault_programm: Pubkey,
+    ) -> SwapData {
+        Self {
+            pool,
+            user_source_token,
+            user_destination_token,
+            a_vault,
+            b_vault,
+            a_token_vault,
+            b_token_vault,
+            a_vault_lp_mint,
+            b_vault_lp_mint,
+            a_vault_lp,
+            b_vault_lp,
+            protocol_token_fee,
+            vault_programm,
+        }
+    }
+}
+
 pub struct MeteoraController {
     config: PingThingsArgs,
     bench: Bench,
@@ -128,8 +179,8 @@ impl MeteoraController {
                                     protocol_token_fee = protocol_token_a_fee;
                                 }
                                 false => {
-                                    user_source_token = token_a_mint;
-                                    user_destination_token = token_b_mint;
+                                    user_source_token = token_b_mint;
+                                    user_destination_token = token_a_mint;
                                     protocol_token_fee = protocol_token_b_fee;
                                 }
                             }
@@ -149,26 +200,27 @@ impl MeteoraController {
                             // println!("protocol_token_b_fee : {}", protocol_token_b_fee);
                             // println!("vault_programm : {}", vault_programm);
 
+                            let swap_data: SwapData = SwapData::new(
+                                pool,
+                                user_source_token,
+                                user_destination_token,
+                                a_vault,
+                                b_vault,
+                                a_token_vault,
+                                b_token_vault,
+                                a_vault_lp_mint,
+                                b_vault_lp_mint,
+                                a_vault_lp,
+                                b_vault_lp,
+                                protocol_token_fee,
+                                vault_programm,
+                            );
+
                             let recent_blockhash: Hash = *transaction.message.recent_blockhash();
                             self.is_buy = true;
                             self.bench
                                 .clone()
-                                .send_swap_tx(
-                                    recent_blockhash,
-                                    pool,
-                                    user_source_token,
-                                    user_destination_token,
-                                    a_vault,
-                                    b_vault,
-                                    a_token_vault,
-                                    b_token_vault,
-                                    a_vault_lp_mint,
-                                    b_vault_lp_mint,
-                                    a_vault_lp,
-                                    b_vault_lp,
-                                    protocol_token_fee,
-                                    vault_programm,
-                                )
+                                .send_swap_tx(recent_blockhash, swap_data)
                                 .await;
                         }
                     }

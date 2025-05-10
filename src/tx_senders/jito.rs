@@ -1,4 +1,5 @@
 use crate::config::RpcType;
+use crate::meteora::SwapData;
 use crate::tx_senders::transaction::{build_transaction_with_config, TransactionConfig};
 use crate::tx_senders::{TxResult, TxSender};
 use anyhow::Context;
@@ -35,38 +36,9 @@ impl JitoTxSender {
         &self,
         index: u32,
         recent_blockhash: Hash,
-        pool: Pubkey,
-        user_source_token: Pubkey,
-        user_destination_token: Pubkey,
-        a_vault: Pubkey,
-        b_vault: Pubkey,
-        a_token_vault: Pubkey,
-        b_token_vault: Pubkey,
-        a_vault_lp_mint: Pubkey,
-        b_vault_lp_mint: Pubkey,
-        a_vault_lp: Pubkey,
-        b_vault_lp: Pubkey,
-        protocol_token_fee: Pubkey,
-        vault_programm: Pubkey,
+        swap_data: SwapData,
     ) -> VersionedTransaction {
-        build_transaction_with_config(
-            &self.tx_config,
-            &RpcType::Jito,
-            recent_blockhash,
-            pool,
-            user_source_token,
-            user_destination_token,
-            a_vault,
-            b_vault,
-            a_token_vault,
-            b_token_vault,
-            a_vault_lp_mint,
-            b_vault_lp_mint,
-            a_vault_lp,
-            b_vault_lp,
-            protocol_token_fee,
-            vault_programm
-        )
+        build_transaction_with_config(&self.tx_config, &RpcType::Jito, recent_blockhash, swap_data)
     }
 }
 
@@ -110,38 +82,10 @@ impl TxSender for JitoTxSender {
         &self,
         index: u32,
         recent_blockhash: Hash,
-        pool: Pubkey,
-        user_source_token: Pubkey,
-        user_destination_token: Pubkey,
-        a_vault: Pubkey,
-        b_vault: Pubkey,
-        a_token_vault: Pubkey,
-        b_token_vault: Pubkey,
-        a_vault_lp_mint: Pubkey,
-        b_vault_lp_mint: Pubkey,
-        a_vault_lp: Pubkey,
-        b_vault_lp: Pubkey,
-        protocol_token_fee: Pubkey,
-        vault_programm: Pubkey,
+        swap_data: SwapData,
     ) -> anyhow::Result<TxResult> {
         println!("SEND JITO TX");
-        let tx = self.build_transaction_with_config(
-            index,
-            recent_blockhash,
-            pool,
-            user_source_token,
-            user_destination_token,
-            a_vault,
-            b_vault,
-            a_token_vault,
-            b_token_vault,
-            a_vault_lp_mint,
-            b_vault_lp_mint,
-            a_vault_lp,
-            b_vault_lp,
-            protocol_token_fee,
-            vault_programm,
-        );
+        let tx = self.build_transaction_with_config(index, recent_blockhash, swap_data);
         let tx_bytes = bincode::serialize(&tx).context("cannot serialize tx to bincode")?;
         let encoded_transaction = bs58::encode(tx_bytes).into_string();
         let body = json!({

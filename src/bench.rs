@@ -1,4 +1,5 @@
 use crate::config::PingThingsArgs;
+use crate::meteora::SwapData;
 use crate::tx_senders::jito::JitoBundleStatusResponse;
 use crate::tx_senders::solana_rpc::TxMetrics;
 use crate::tx_senders::transaction::TransactionConfig;
@@ -56,19 +57,7 @@ impl Bench {
         tx_index: u32,
         rpc_sender: Arc<dyn TxSender>,
         recent_blockhash: Hash,
-        pool: Pubkey,
-        user_source_token: Pubkey,
-        user_destination_token: Pubkey,
-        a_vault: Pubkey,
-        b_vault: Pubkey,
-        a_token_vault: Pubkey,
-        b_token_vault: Pubkey,
-        a_vault_lp_mint: Pubkey,
-        b_vault_lp_mint: Pubkey,
-        a_vault_lp: Pubkey,
-        b_vault_lp: Pubkey,
-        protocol_token_fee: Pubkey,
-        vault_programm: Pubkey,
+        swap_data: SwapData
     ) -> anyhow::Result<()> {
         let start = tokio::time::Instant::now();
 
@@ -76,19 +65,7 @@ impl Bench {
             .send_transaction(
                 tx_index,
                 recent_blockhash,
-                pool,
-                user_source_token,
-                user_destination_token,
-                a_vault,
-                b_vault,
-                a_token_vault,
-                b_token_vault,
-                a_vault_lp_mint,
-                b_vault_lp_mint,
-                a_vault_lp,
-                b_vault_lp,
-                protocol_token_fee,
-                vault_programm,
+                swap_data
             )
             .await?;
 
@@ -103,36 +80,12 @@ impl Bench {
     pub async fn send_swap_tx(
         self,
         recent_blockhash: Hash,
-        pool: Pubkey,
-        user_source_token: Pubkey,
-        user_destination_token: Pubkey,
-        a_vault: Pubkey,
-        b_vault: Pubkey,
-        a_token_vault: Pubkey,
-        b_token_vault: Pubkey,
-        a_vault_lp_mint: Pubkey,
-        b_vault_lp_mint: Pubkey,
-        a_vault_lp: Pubkey,
-        b_vault_lp: Pubkey,
-        protocol_token_fee: Pubkey,
-        vault_programm: Pubkey,
+        swap_data: SwapData
     ) {
         tokio::select! {
             _ = self.send_swap_tx_inner(
                 recent_blockhash,
-                pool,
-                user_source_token,
-                user_destination_token,
-                a_vault,
-                b_vault,
-                a_token_vault,
-                b_token_vault,
-                a_vault_lp_mint,
-                b_vault_lp_mint,
-                a_vault_lp,
-                b_vault_lp,
-                protocol_token_fee,
-                vault_programm,
+                swap_data
             ) => {}
         }
     }
@@ -140,19 +93,7 @@ impl Bench {
     async fn send_swap_tx_inner(
         self,
         recent_blockhash: Hash,
-        pool: Pubkey,
-        user_source_token: Pubkey,
-        user_destination_token: Pubkey,
-        a_vault: Pubkey,
-        b_vault: Pubkey,
-        a_token_vault: Pubkey,
-        b_token_vault: Pubkey,
-        a_vault_lp_mint: Pubkey,
-        b_vault_lp_mint: Pubkey,
-        a_vault_lp: Pubkey,
-        b_vault_lp: Pubkey,
-        protocol_token_fee: Pubkey,
-        vault_programm: Pubkey,
+        swap_data: SwapData
     ) {
         let start = tokio::time::Instant::now();
         info!("starting create buy tx");
@@ -168,19 +109,7 @@ impl Bench {
                     index,
                     rpc_sender,
                     recent_blockhash,
-                    pool,
-                    user_source_token,
-                    user_destination_token,
-                    a_vault,
-                    b_vault,
-                    a_token_vault,
-                    b_token_vault,
-                    a_vault_lp_mint,
-                    b_vault_lp_mint,
-                    a_vault_lp,
-                    b_vault_lp,
-                    protocol_token_fee,
-                    vault_programm,
+                    swap_data
                 )
                 .await
                 {

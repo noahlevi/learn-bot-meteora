@@ -19,6 +19,8 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tracing::{error, info, warn};
 
+use crate::meteora::SwapData;
+
 #[derive(Clone)]
 pub struct TransactionConfig {
     pub keypair: Arc<Keypair>,
@@ -52,19 +54,7 @@ pub fn build_transaction_with_config(
     tx_config: &TransactionConfig,
     rpc_type: &RpcType,
     recent_blockhash: Hash,
-    pool: Pubkey,
-    user_source_token: Pubkey,
-    user_destination_token: Pubkey,
-    a_vault: Pubkey,
-    b_vault: Pubkey,
-    a_token_vault: Pubkey,
-    b_token_vault: Pubkey,
-    a_vault_lp_mint: Pubkey,
-    b_vault_lp_mint: Pubkey,
-    a_vault_lp: Pubkey,
-    b_vault_lp: Pubkey,
-    protocol_token_fee: Pubkey,
-    vault_programm: Pubkey,
+    swap_data: SwapData
 ) -> VersionedTransaction {
     let mut instructions = Vec::new();
 
@@ -79,6 +69,8 @@ pub fn build_transaction_with_config(
             ComputeBudgetInstruction::set_compute_unit_price(tx_config.compute_unit_price);
         instructions.push(compute_unit_price);
     }
+
+    info!("RPC TYPE {:?}", rpc_type);
 
     if tx_config.tip > 0 {
         let tip_instruction: Option<Instruction> = match rpc_type {
@@ -101,6 +93,7 @@ pub fn build_transaction_with_config(
         };
 
         if tip_instruction.is_some() {
+            info!("TIP INSTRUCTION IS SOME");
             instructions.push(tip_instruction.unwrap());
         }
     }
@@ -119,24 +112,24 @@ pub fn build_transaction_with_config(
 
     let mut data = vec![];
     data.extend_from_slice(swap_discriminator);
-    data.extend_from_slice(&tx_config.min_amount_out.to_le_bytes());
     data.extend_from_slice(&tx_config.buy_amount.to_le_bytes());
+    data.extend_from_slice(&tx_config.min_amount_out.to_le_bytes());
 
     let accounts = vec![
-        AccountMeta::new_readonly(pool, false),
-        AccountMeta::new(user_source_token, false),
-        AccountMeta::new(user_destination_token, false),
-        AccountMeta::new(a_vault, false),
-        AccountMeta::new(b_vault, false),
-        AccountMeta::new(a_token_vault, false),
-        AccountMeta::new(b_token_vault, false),
-        AccountMeta::new(a_vault_lp_mint, false),
-        AccountMeta::new(b_vault_lp_mint, false),
-        AccountMeta::new(a_vault_lp, false),
-        AccountMeta::new(b_vault_lp, false),
-        AccountMeta::new(protocol_token_fee, false),
+        AccountMeta::new_readonly(swap_data.pool, false),
+        AccountMeta::new(swap_data.user_source_token, false),
+        AccountMeta::new(swap_data.user_destination_token, false),
+        AccountMeta::new(swap_data.a_vault, false),
+        AccountMeta::new(swap_data.b_vault, false),
+        AccountMeta::new(swap_data.a_token_vault, false),
+        AccountMeta::new(swap_data.b_token_vault, false),
+        AccountMeta::new(swap_data.a_vault_lp_mint, false),
+        AccountMeta::new(swap_data.b_vault_lp_mint, false),
+        AccountMeta::new(swap_data.a_vault_lp, false),
+        AccountMeta::new(swap_data.b_vault_lp, false),
+        AccountMeta::new(swap_data.protocol_token_fee, false),
         AccountMeta::new_readonly(owner, false), //user
-        AccountMeta::new_readonly(vault_programm, false),
+        AccountMeta::new_readonly(swap_data.vault_programm, false),
         AccountMeta::new_readonly(token_program_pubkey, false),
     ];
 

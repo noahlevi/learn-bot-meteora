@@ -1,4 +1,5 @@
 use crate::config::{RpcConfig, RpcType};
+use crate::meteora::SwapData;
 use crate::tx_senders::bloxroute::BloxrouteTxSender;
 use crate::tx_senders::jito::JitoTxSender;
 use crate::tx_senders::nextblock::NextblockTxSender;
@@ -41,19 +42,7 @@ pub trait TxSender: Sync + Send {
         &self,
         index: u32,
         recent_blockhash: Hash,
-        pool: Pubkey,
-        user_source_token: Pubkey,
-        user_destination_token: Pubkey,
-        a_vault: Pubkey,
-        b_vault: Pubkey,
-        a_token_vault: Pubkey,
-        b_token_vault: Pubkey,
-        a_vault_lp_mint: Pubkey,
-        b_vault_lp_mint: Pubkey,
-        a_vault_lp: Pubkey,
-        b_vault_lp: Pubkey,
-        protocol_token_fee: Pubkey,
-        vault_programm: Pubkey,
+        swap_data: SwapData
     ) -> anyhow::Result<TxResult>;
 }
 
