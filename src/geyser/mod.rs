@@ -56,15 +56,10 @@ pub trait YellowstoneGrpcGeyser: Send + Sync {
         &self,
         meteora_controller: MeteoraController
     ) -> GeyserResult<()>;
-    // async fn consume(
-    //     &self,
-    //     pump_fun_controller: PumpFunController
-    // ) -> GeyserResult<()>;
 }
 
 use thiserror::Error;
 use crate::config::PingThingsArgs;
-// use crate::pumpfun::PumpFunController;
 use crate::meteora::MeteoraController;
 
 #[derive(Error, Debug)]

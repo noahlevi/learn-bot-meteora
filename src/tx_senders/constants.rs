@@ -8,3 +8,4 @@ pub const BLOXROUTE_TIP_ADDR: &str = "HWEoBxYs7ssKuudEjzjmpfJVX7Dvi7wescFsVx2L5y
 pub const NEXTBLOCK_BLOCK_TIP_ADDR: &str = "NeXTBLoCKs9F1y5PJS9CKrFNNLU1keHW71rfh7KgA1X";
 
 pub const METEORA_PROGRAM_ADDR: &str = "Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB";
+pub const METEORA_PROGRAM_FEE_ADDR: &str = "Fq8QLj1SeKGiGNexdEhUrnYMJxSFT5ryd4JqYDsccmm";

@@ -27,10 +27,8 @@ use tracing::info;
 use crate::bench::Bench;
 use crate::geyser::{GeyserResult, YellowstoneGrpcGeyser, YellowstoneGrpcGeyserClient};
 use crate::config::PingThingsArgs;
-// use crate::pumpfun::PumpFunController;
 use crate::meteora::MeteoraController;
 
-pub const PUMPFUN_PROGRAM_ID: Pubkey = pubkey!("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P");
 pub const METEORA_PROGRAM_ID: Pubkey = pubkey!("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB");
 pub const WSOL_ACCOUNT_ID: Pubkey = pubkey!("So11111111111111111111111111111111111111112");
 
@@ -38,7 +36,6 @@ mod bench;
 mod config;
 mod tx_senders;
 mod geyser;
-// mod pumpfun;
 mod core;
 mod meteora;
 

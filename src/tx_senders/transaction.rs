@@ -1,8 +1,9 @@
 use crate::config::{PingThingsArgs, RpcType};
 use crate::tx_senders::constants::{
     BLOXROUTE_TIP_ADDR, JITO_TIP_ADDR, METEORA_PROGRAM_ADDR, NEXTBLOCK_BLOCK_TIP_ADDR, RENT_ADDR,
-    SYSTEM_PROGRAM_ADDR, TOKEN_PROGRAM_ADDR,
+    SYSTEM_PROGRAM_ADDR, TOKEN_PROGRAM_ADDR, METEORA_PROGRAM_FEE_ADDR
 };
+use crate::WSOL_ACCOUNT_ID;
 use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::hash::Hash;
 use solana_sdk::instruction::{AccountMeta, Instruction};
@@ -115,10 +116,26 @@ pub fn build_transaction_with_config(
     data.extend_from_slice(&tx_config.buy_amount.to_le_bytes());
     data.extend_from_slice(&tx_config.min_amount_out.to_le_bytes());
 
+    let (user_source_token, user_destination_token): (Pubkey, Pubkey);
+
+    match WSOL_ACCOUNT_ID == swap_data.token_a_mint {
+        true => {
+            user_source_token = swap_data.token_a_mint;
+            user_destination_token = swap_data.token_b_mint;
+        }
+        false => {
+            user_source_token = swap_data.token_b_mint;
+            user_destination_token = swap_data.token_a_mint;
+        }
+    }
+
+    info!("USER SOURCE TOKEN ADDRESS: {:?}", user_source_token);
+    info!("USER DESTINATION TOKEN ADDRESS: {:?}", user_destination_token);
+
     let accounts = vec![
         AccountMeta::new_readonly(swap_data.pool, false),
-        AccountMeta::new(swap_data.user_source_token, false),
-        AccountMeta::new(swap_data.user_destination_token, false),
+        AccountMeta::new(user_source_token, false),
+        AccountMeta::new(user_destination_token, false),
         AccountMeta::new(swap_data.a_vault, false),
         AccountMeta::new(swap_data.b_vault, false),
         AccountMeta::new(swap_data.a_token_vault, false),
@@ -127,7 +144,7 @@ pub fn build_transaction_with_config(
         AccountMeta::new(swap_data.b_vault_lp_mint, false),
         AccountMeta::new(swap_data.a_vault_lp, false),
         AccountMeta::new(swap_data.b_vault_lp, false),
-        AccountMeta::new(swap_data.protocol_token_fee, false),
+        AccountMeta::new(Pubkey::from_str(METEORA_PROGRAM_FEE_ADDR).unwrap(), false),
         AccountMeta::new_readonly(owner, false), //user
         AccountMeta::new_readonly(swap_data.vault_programm, false),
         AccountMeta::new_readonly(token_program_pubkey, false),

@@ -47,8 +47,8 @@ pub struct AddLiquidityIxData {
 #[derive(Debug, Clone, Copy)]
 pub struct SwapData {
     pub pool: Pubkey,
-    pub user_source_token: Pubkey,
-    pub user_destination_token: Pubkey,
+    pub token_a_mint: Pubkey,
+    pub token_b_mint: Pubkey,
     pub a_vault: Pubkey,
     pub b_vault: Pubkey,
     pub a_token_vault: Pubkey,
@@ -57,15 +57,14 @@ pub struct SwapData {
     pub b_vault_lp_mint: Pubkey,
     pub a_vault_lp: Pubkey,
     pub b_vault_lp: Pubkey,
-    pub protocol_token_fee: Pubkey,
     pub vault_programm: Pubkey,
 }
 
 impl SwapData {
     pub fn new(
         pool: Pubkey,
-        user_source_token: Pubkey,
-        user_destination_token: Pubkey,
+        token_a_mint: Pubkey,
+        token_b_mint: Pubkey,
         a_vault: Pubkey,
         b_vault: Pubkey,
         a_token_vault: Pubkey,
@@ -74,13 +73,12 @@ impl SwapData {
         b_vault_lp_mint: Pubkey,
         a_vault_lp: Pubkey,
         b_vault_lp: Pubkey,
-        protocol_token_fee: Pubkey,
         vault_programm: Pubkey,
     ) -> SwapData {
         Self {
             pool,
-            user_source_token,
-            user_destination_token,
+            token_a_mint,
+            token_b_mint,
             a_vault,
             b_vault,
             a_token_vault,
@@ -89,7 +87,6 @@ impl SwapData {
             b_vault_lp_mint,
             a_vault_lp,
             b_vault_lp,
-            protocol_token_fee,
             vault_programm,
         }
     }
@@ -168,23 +165,6 @@ impl MeteoraController {
 
                             let vault_programm = instruction.accounts[22].pubkey;
 
-                            let user_source_token: Pubkey;
-                            let user_destination_token: Pubkey;
-                            let protocol_token_fee: Pubkey;
-
-                            match WSOL_ACCOUNT_ID == token_a_mint {
-                                true => {
-                                    user_source_token = token_a_mint;
-                                    user_destination_token = token_b_mint;
-                                    protocol_token_fee = protocol_token_a_fee;
-                                }
-                                false => {
-                                    user_source_token = token_b_mint;
-                                    user_destination_token = token_a_mint;
-                                    protocol_token_fee = protocol_token_b_fee;
-                                }
-                            }
-
                             // println!("pool : {}", pool);
                             // println!("token_a_mint : {}", token_a_mint);
                             // println!("token_b_mint : {}", token_b_mint);
@@ -202,8 +182,8 @@ impl MeteoraController {
 
                             let swap_data: SwapData = SwapData::new(
                                 pool,
-                                user_source_token,
-                                user_destination_token,
+                                token_a_mint,
+                                token_b_mint,
                                 a_vault,
                                 b_vault,
                                 a_token_vault,
@@ -212,7 +192,6 @@ impl MeteoraController {
                                 b_vault_lp_mint,
                                 a_vault_lp,
                                 b_vault_lp,
-                                protocol_token_fee,
                                 vault_programm,
                             );
 
