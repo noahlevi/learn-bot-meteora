@@ -75,7 +75,7 @@ impl TxSender for NextblockTxSender {
         recent_blockhash: Hash,
         swap_data: SwapData
     ) -> anyhow::Result<TxResult> {
-        println!("SEND NEXTBLOCK TX");
+        info!("SEND NEXTBLOCK TX");
         let tx = self.build_transaction_with_config(
             index,
             recent_blockhash,
@@ -105,10 +105,6 @@ impl TxSender for NextblockTxSender {
         let parsed_resp = serde_json::from_str::<NextblockResponse>(&body)
             .context("cannot deserialize signature")?;
 
-        info!(
-            "NEXTBLOCK Signature: {:?}",
-            Signature::from_str(&parsed_resp.signature).expect("signature from string parsing err")
-        );
         Ok(TxResult::Signature(
             Signature::from_str(&parsed_resp.signature).expect("signature from string parsing err"),
         ))

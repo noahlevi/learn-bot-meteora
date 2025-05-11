@@ -1,0 +1,138 @@
+{
+    "name": "swap",
+    "docs": [
+        "Swap token A to B, or vice versa. An amount of trading fee will be charged for liquidity provider, and the admin of the pool."
+    ],
+    "accounts": [
+        {
+            "name": "pool",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Pool account (PDA)"
+            ]
+        },
+        {
+            "name": "userSourceToken",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "User token account. Token from this account will be transfer into the vault by the pool in exchange for another token of the pool."
+            ]
+        },
+        {
+            "name": "userDestinationToken",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "User token account. The exchanged token will be transfer into this account from the pool."
+            ]
+        },
+        {
+            "name": "aVault",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Vault account for token a. token a of the pool will be deposit / withdraw from this vault account."
+            ]
+        },
+        {
+            "name": "bVault",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Vault account for token b. token b of the pool will be deposit / withdraw from this vault account."
+            ]
+        },
+        {
+            "name": "aTokenVault",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Token vault account of vault A"
+            ]
+        },
+        {
+            "name": "bTokenVault",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Token vault account of vault B"
+            ]
+        },
+        {
+            "name": "aVaultLpMint",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Lp token mint of vault a"
+            ]
+        },
+        {
+            "name": "bVaultLpMint",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Lp token mint of vault b"
+            ]
+        },
+        {
+            "name": "aVaultLp",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "LP token account of vault A. Used to receive/burn the vault LP upon deposit/withdraw from the vault."
+            ]
+        },
+        {
+            "name": "bVaultLp",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "LP token account of vault B. Used to receive/burn the vault LP upon deposit/withdraw from the vault."
+            ]
+        },
+        {
+            "name": "protocolTokenFee",
+            "isMut": true,
+            "isSigner": false,
+            "docs": [
+                "Protocol fee token account. Used to receive trading fee. It's mint field must matched with user_source_token mint field."
+            ]
+        },
+        {
+            "name": "user",
+            "isMut": false,
+            "isSigner": true,
+            "docs": [
+                "User account. Must be owner of user_source_token."
+            ]
+        },
+        {
+            "name": "vaultProgram",
+            "isMut": false,
+            "isSigner": false,
+            "docs": [
+                "Vault program. the pool will deposit/withdraw liquidity from the vault."
+            ]
+        },
+        {
+            "name": "tokenProgram",
+            "isMut": false,
+            "isSigner": false,
+            "docs": [
+                "Token program."
+            ]
+        }
+    ],
+    "args": [
+        {
+            "name": "inAmount",
+            "type": "u64"
+        },
+        {
+            "name": "minimumOutAmount",
+            "type": "u64"
+        }
+    ]
+}

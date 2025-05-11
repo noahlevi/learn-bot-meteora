@@ -47,13 +47,13 @@ impl BloxrouteTxSender {
         &self,
         index: u32,
         recent_blockhash: Hash,
-        swap_data: SwapData
+        swap_data: SwapData,
     ) -> VersionedTransaction {
         build_transaction_with_config(
             &self.tx_config,
             &RpcType::Bloxroute,
             recent_blockhash,
-            swap_data
+            swap_data,
         )
     }
 }
@@ -76,12 +76,8 @@ impl TxSender for BloxrouteTxSender {
         recent_blockhash: Hash,
         swap_data: SwapData,
     ) -> anyhow::Result<TxResult> {
-        println!("SEND BLOXROUTE TX");
-        let tx = self.build_transaction_with_config(
-            index,
-            recent_blockhash,
-            swap_data
-        );
+        info!("SEND BLOXROUTE TX");
+        let tx = self.build_transaction_with_config(index, recent_blockhash, swap_data);
         let tx_bytes = bincode::serialize(&tx).context("cannot serialize tx to bincode")?;
         let encoded_transaction = base64::encode(tx_bytes);
         let body = json!({"transaction": {"content": encoded_transaction}});
@@ -101,7 +97,7 @@ impl TxSender for BloxrouteTxSender {
         let parsed_resp = serde_json::from_str::<BloxrouteResponse>(&body)
             .context("cannot deserialize signature")?;
 
-            Ok(TxResult::Signature(
+        Ok(TxResult::Signature(
             Signature::from_str(&parsed_resp.signature).expect("signature from string parsing err"),
         ))
     }

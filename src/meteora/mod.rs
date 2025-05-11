@@ -58,6 +58,8 @@ pub struct SwapData {
     pub a_vault_lp: Pubkey,
     pub b_vault_lp: Pubkey,
     pub vault_programm: Pubkey,
+    pub protocol_token_a_fee: Pubkey,
+    pub protocol_token_b_fee: Pubkey,
 }
 
 impl SwapData {
@@ -74,6 +76,8 @@ impl SwapData {
         a_vault_lp: Pubkey,
         b_vault_lp: Pubkey,
         vault_programm: Pubkey,
+        protocol_token_a_fee: Pubkey,
+        protocol_token_b_fee: Pubkey,
     ) -> SwapData {
         Self {
             pool,
@@ -88,6 +92,8 @@ impl SwapData {
             a_vault_lp,
             b_vault_lp,
             vault_programm,
+            protocol_token_a_fee,
+            protocol_token_b_fee,
         }
     }
 }
@@ -123,8 +129,6 @@ impl MeteoraController {
         if !self.is_buy {
             for (instruction) in instructions {
                 if instruction.program_id == Pubkey::from_str(METEORA_PROGRAM_ADDR)? {
-                    // info!("INSIDE meteora tx handler METEORA_PROGRAM_ADDR ");
-
                     let ix_discriminator: [u8; 8] =
                         instruction.data[0..IX_DISCRIMINATOR_SIZE].try_into()?;
 
@@ -162,23 +166,7 @@ impl MeteoraController {
 
                             let protocol_token_a_fee = instruction.accounts[16].pubkey;
                             let protocol_token_b_fee = instruction.accounts[17].pubkey;
-
                             let vault_programm = instruction.accounts[22].pubkey;
-
-                            // println!("pool : {}", pool);
-                            // println!("token_a_mint : {}", token_a_mint);
-                            // println!("token_b_mint : {}", token_b_mint);
-                            // println!("a_vault : {}", a_vault);
-                            // println!("b_vault : {}", b_vault);
-                            // println!("a_token_vault : {}", a_token_vault);
-                            // println!("b_token_vault : {}", b_token_vault);
-                            // println!("a_vault_lp_mint : {}", a_vault_lp_mint);
-                            // println!("b_vault_lp_mint : {}", b_vault_lp_mint);
-                            // println!("a_vault_lp : {}", a_vault_lp);
-                            // println!("b_vault_lp : {}", b_vault_lp);
-                            // println!("protocol_token_a_fee : {}", protocol_token_a_fee);
-                            // println!("protocol_token_b_fee : {}", protocol_token_b_fee);
-                            // println!("vault_programm : {}", vault_programm);
 
                             let swap_data: SwapData = SwapData::new(
                                 pool,
@@ -193,6 +181,8 @@ impl MeteoraController {
                                 a_vault_lp,
                                 b_vault_lp,
                                 vault_programm,
+                                protocol_token_a_fee,
+                                protocol_token_b_fee,
                             );
 
                             let recent_blockhash: Hash = *transaction.message.recent_blockhash();

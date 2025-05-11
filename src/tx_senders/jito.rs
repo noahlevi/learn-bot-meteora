@@ -84,7 +84,7 @@ impl TxSender for JitoTxSender {
         recent_blockhash: Hash,
         swap_data: SwapData,
     ) -> anyhow::Result<TxResult> {
-        println!("SEND JITO TX");
+        info!("SEND JITO TX");
         let tx = self.build_transaction_with_config(index, recent_blockhash, swap_data);
         let tx_bytes = bincode::serialize(&tx).context("cannot serialize tx to bincode")?;
         let encoded_transaction = bs58::encode(tx_bytes).into_string();
@@ -105,7 +105,6 @@ impl TxSender for JitoTxSender {
         let parsed_resp =
             serde_json::from_str::<JitoResponse>(&body).context("cannot deserialize signature")?;
 
-        info!("JITO BundleID: {:?}", parsed_resp.result);
         Ok(TxResult::BundleID(parsed_resp.result))
     }
 }

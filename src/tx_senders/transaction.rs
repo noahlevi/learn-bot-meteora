@@ -1,7 +1,7 @@
 use crate::config::{PingThingsArgs, RpcType};
 use crate::tx_senders::constants::{
     BLOXROUTE_TIP_ADDR, JITO_TIP_ADDR, METEORA_PROGRAM_ADDR, NEXTBLOCK_BLOCK_TIP_ADDR, RENT_ADDR,
-    SYSTEM_PROGRAM_ADDR, TOKEN_PROGRAM_ADDR, METEORA_PROGRAM_FEE_ADDR
+    SYSTEM_PROGRAM_ADDR, TOKEN_PROGRAM_ADDR,
 };
 use crate::WSOL_ACCOUNT_ID;
 use solana_sdk::compute_budget::ComputeBudgetInstruction;
@@ -15,7 +15,9 @@ use solana_sdk::signature::{EncodableKey, Keypair, Signer};
 use solana_sdk::system_instruction;
 use solana_sdk::transaction::{Transaction, VersionedTransaction};
 use spl_associated_token_account::get_associated_token_address;
-use spl_associated_token_account::instruction::create_associated_token_account;
+use spl_associated_token_account::instruction::{
+    create_associated_token_account, create_associated_token_account_idempotent,
+};
 use std::str::FromStr;
 use std::sync::Arc;
 use tracing::{error, info, warn};
@@ -55,7 +57,7 @@ pub fn build_transaction_with_config(
     tx_config: &TransactionConfig,
     rpc_type: &RpcType,
     recent_blockhash: Hash,
-    swap_data: SwapData
+    swap_data: SwapData,
 ) -> VersionedTransaction {
     let mut instructions = Vec::new();
 
@@ -94,7 +96,6 @@ pub fn build_transaction_with_config(
         };
 
         if tip_instruction.is_some() {
-            info!("TIP INSTRUCTION IS SOME");
             instructions.push(tip_instruction.unwrap());
         }
     }
@@ -103,10 +104,40 @@ pub fn build_transaction_with_config(
 
     let owner = tx_config.keypair.pubkey();
 
-    // let token_account_instruction =
-    //     create_associated_token_account(&owner, &owner, &token_address, &token_program_pubkey);
+    let (user_source_mint, user_destination_mint, protocol_token_fee) =
+        if WSOL_ACCOUNT_ID == swap_data.token_a_mint {
+            // Source is WSOL token A, destination is token B
+            (
+                swap_data.token_a_mint,
+                swap_data.token_b_mint,
+                swap_data.protocol_token_a_fee,
+            )
+        } else {
+            // Source is token B, destination is token A
+            (
+                swap_data.token_b_mint,
+                swap_data.token_a_mint,
+                swap_data.protocol_token_b_fee,
+            )
+        };
 
-    // instructions.push(token_account_instruction);
+    let user_source_token = get_associated_token_address(&owner, &user_source_mint);
+    let user_destination_token = get_associated_token_address(&owner, &user_destination_mint);
+
+    let user_destination_token_ata_instruction = create_associated_token_account_idempotent(
+        &owner,
+        &owner,
+        &user_destination_mint,
+        &token_program_pubkey,
+    );
+    instructions.push(user_destination_token_ata_instruction);
+
+    info!("USER SOURCE TOKEN ADDRESS: {:?}", user_source_token);
+    info!(
+        "USER DESTINATION TOKEN ADDRESS: {:?}",
+        user_destination_token
+    );
+    info!("PROTOCOL TOKEN FEE: {:?}", protocol_token_fee);
 
     // Swap instruction data
     let swap_discriminator = &solana_sdk::hash::hash(b"global:swap").to_bytes()[..8];
@@ -116,24 +147,8 @@ pub fn build_transaction_with_config(
     data.extend_from_slice(&tx_config.buy_amount.to_le_bytes());
     data.extend_from_slice(&tx_config.min_amount_out.to_le_bytes());
 
-    let (user_source_token, user_destination_token): (Pubkey, Pubkey);
-
-    match WSOL_ACCOUNT_ID == swap_data.token_a_mint {
-        true => {
-            user_source_token = swap_data.token_a_mint;
-            user_destination_token = swap_data.token_b_mint;
-        }
-        false => {
-            user_source_token = swap_data.token_b_mint;
-            user_destination_token = swap_data.token_a_mint;
-        }
-    }
-
-    info!("USER SOURCE TOKEN ADDRESS: {:?}", user_source_token);
-    info!("USER DESTINATION TOKEN ADDRESS: {:?}", user_destination_token);
-
     let accounts = vec![
-        AccountMeta::new_readonly(swap_data.pool, false),
+        AccountMeta::new(swap_data.pool, false),
         AccountMeta::new(user_source_token, false),
         AccountMeta::new(user_destination_token, false),
         AccountMeta::new(swap_data.a_vault, false),
@@ -144,8 +159,8 @@ pub fn build_transaction_with_config(
         AccountMeta::new(swap_data.b_vault_lp_mint, false),
         AccountMeta::new(swap_data.a_vault_lp, false),
         AccountMeta::new(swap_data.b_vault_lp, false),
-        AccountMeta::new(Pubkey::from_str(METEORA_PROGRAM_FEE_ADDR).unwrap(), false),
-        AccountMeta::new_readonly(owner, false), //user
+        AccountMeta::new(protocol_token_fee, false),
+        AccountMeta::new_readonly(owner, true), // user (signer)
         AccountMeta::new_readonly(swap_data.vault_programm, false),
         AccountMeta::new_readonly(token_program_pubkey, false),
     ];
